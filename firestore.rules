@@ -1,0 +1,83 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return signedIn() && userDoc().data.role == 'admin';
+    }
+
+    function isClientFor(clientId) {
+      return signedIn() && userDoc().data.role == 'client' && userDoc().data.clientId == clientId;
+    }
+
+    function hasOnlyFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function publicNotification() {
+      return hasOnlyFields(['title', 'message', 'sourceId', 'clientId', 'read', 'createdAt'])
+        && request.resource.data.title in ['New contact form', 'New newsletter signup']
+        && request.resource.data.sourceId is string
+        && request.resource.data.read == false;
+    }
+
+    function clientNotification() {
+      return signedIn()
+        && hasOnlyFields(['title', 'message', 'sourceId', 'clientId', 'read', 'createdAt'])
+        && request.resource.data.title == 'New support request'
+        && request.resource.data.clientId == userDoc().data.clientId
+        && request.resource.data.sourceId is string
+        && request.resource.data.read == false;
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /clients/{clientId} {
+      allow read: if isAdmin() || isClientFor(clientId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /analytics/{docId} {
+      allow read: if isAdmin() || isClientFor(resource.data.clientId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /formSubmissions/{docId} {
+      allow create: if hasOnlyFields(['name', 'businessName', 'email', 'phone', 'websiteUrl', 'message', 'clientId', 'type', 'status', 'createdAt']);
+      allow read, update, delete: if isAdmin() || isClientFor(resource.data.clientId);
+    }
+
+    match /newsletterSignups/{docId} {
+      allow create: if hasOnlyFields(['email', 'clientId', 'source', 'createdAt']);
+      allow read, update, delete: if isAdmin() || isClientFor(resource.data.clientId);
+    }
+
+    match /supportRequests/{docId} {
+      allow create: if signedIn()
+        && hasOnlyFields(['subject', 'priority', 'message', 'clientId', 'businessName', 'requesterEmail', 'status', 'createdAt'])
+        && request.resource.data.clientId == userDoc().data.clientId;
+      allow read, update, delete: if isAdmin() || isClientFor(resource.data.clientId);
+    }
+
+    match /notifications/{docId} {
+      allow create: if isAdmin() || publicNotification() || clientNotification();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /payments/{clientId} {
+      allow read: if isAdmin() || isClientFor(clientId);
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
