@@ -6,6 +6,7 @@ import StatCard from '../../components/StatCard.jsx';
 import {
   addDocument,
   collections,
+  createPortalLogin,
   createProject,
   deleteDocument,
   deleteProject,
@@ -45,6 +46,7 @@ export default function AdminClientDetail() {
   const [projects, setProjects] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [saveStatus, setSaveStatus] = useState('');
+  const [loginStatus, setLoginStatus] = useState('');
   const [newProject, setNewProject] = useState({ name: '', status: 'Not Started', description: '', dueDate: '' });
   const [showNewProject, setShowNewProject] = useState(false);
   const [newDoc, setNewDoc] = useState({ title: '', url: '', type: 'drive', description: '' });
@@ -101,6 +103,33 @@ export default function AdminClientDetail() {
   async function handleDeleteProject(p) {
     if (!window.confirm(`Delete project "${p.name}"?`)) return;
     await deleteProject(p.id);
+  }
+
+  async function handleCreateLogin() {
+    if (!client.portalLoginEmail) {
+      setLoginStatus('Error: Set a portal login email first and save.');
+      return;
+    }
+    setLoginStatus('Creating login…');
+    try {
+      const result = await createPortalLogin({
+        businessName: client.businessName,
+        contactName: client.contactName,
+        email: client.email,
+        phone: client.phone,
+        websiteUrl: client.websiteUrl,
+        planName: client.planName,
+        monthlyMaintenanceAmount: client.monthlyMaintenanceAmount,
+        websiteStatus: client.websiteStatus,
+        portalLoginEmail: client.portalLoginEmail,
+      });
+      const { uid, temporaryPassword } = result.data;
+      await updateClient(clientId, { authUid: uid });
+      setClient((c) => ({ ...c, authUid: uid }));
+      setLoginStatus(`Login created. Temp password: ${temporaryPassword}`);
+    } catch (err) {
+      setLoginStatus(`Error: ${err.message}`);
+    }
   }
 
   async function handleAddDocument(e) {
@@ -432,17 +461,45 @@ export default function AdminClientDetail() {
 
           {/* Portal login */}
           <div className="workspace-card">
-            <h3>Portal Access</h3>
-            <form onSubmit={handleSave}>
-              <div className="form-grid">
-                <label>Portal Login Email<input type="email" name="portalLoginEmail" value={client.portalLoginEmail || ''} onChange={change} /></label>
-                <label>Firebase Auth UID (read-only)<input value={client.authUid || 'Not set'} readOnly style={{ background: 'var(--soft)', cursor: 'not-allowed', color: 'var(--muted)' }} /></label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ margin: 0 }}>Portal Login Access</h3>
+              {client.authUid
+                ? <span className="status-chip active">Login active</span>
+                : <span className="status-chip inactive">No login yet</span>
+              }
+            </div>
+
+            {!client.authUid && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: 'var(--radius-sm)', fontSize: 13, color: '#92400e', lineHeight: 1.6 }}>
+                This client has no portal login. Set the email below, save it, then click <strong>Create Portal Login</strong>. Requires Firebase Blaze plan with Cloud Functions deployed.
               </div>
-              <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-                <button className="button primary sm" type="submit">Save</button>
+            )}
+
+            <form onSubmit={handleSave} style={{ marginBottom: 16 }}>
+              <div className="form-grid">
+                <label>Portal Login Email<input type="email" name="portalLoginEmail" value={client.portalLoginEmail || ''} onChange={change} placeholder="client@example.com" /></label>
+                <label>Firebase Auth UID<input value={client.authUid || 'Not created yet'} readOnly style={{ background: 'var(--soft)', cursor: 'not-allowed', color: 'var(--muted)' }} /></label>
+              </div>
+              <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="button primary sm" type="submit">Save Email</button>
+                {!client.authUid && (
+                  <button
+                    className="button ghost sm"
+                    type="button"
+                    onClick={handleCreateLogin}
+                    disabled={loginStatus === 'Creating login…'}
+                  >
+                    {loginStatus === 'Creating login…' ? 'Creating…' : 'Create Portal Login'}
+                  </button>
+                )}
                 <SaveBar style={{ margin: 0 }} />
               </div>
             </form>
+            {loginStatus && (
+              <p className={loginStatus.startsWith('Error') ? 'form-error' : 'form-status'}>
+                {loginStatus}
+              </p>
+            )}
           </div>
         </div>
       )}

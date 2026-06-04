@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase/config';
 
@@ -86,6 +86,13 @@ export async function updateClient(clientId, data) {
   return upsertPayment(clientId, paymentPayload);
 }
 
+// Requires Firebase Cloud Functions (Blaze plan). Creates Firebase Auth user for portal login.
+export async function createPortalLogin(payload) {
+  requireFunctions();
+  const callable = httpsCallable(functions, 'createClientWithUser');
+  return callable(payload);
+}
+
 export async function archiveClient(clientId) {
   return updateClient(clientId, { status: 'Archived', websiteStatus: 'Archived', archived: true });
 }
@@ -100,6 +107,59 @@ export async function createClientWithUser(payload) {
   requireFunctions();
   const callable = httpsCallable(functions, 'createClientWithUser');
   return callable(payload);
+}
+
+// Direct Firestore write — no Cloud Functions required.
+// Creates the client record and payments doc in a single batch.
+// Portal login (Firebase Auth user) is created separately via createClientWithUser.
+export async function createClientDirect(payload) {
+  requireFirestore();
+  const {
+    temporaryPassword: _pw,
+    portalLoginEmail,
+    monthlyMaintenanceAmount,
+    buildPrice,
+    subscriptionEnabled,
+    ...rest
+  } = payload;
+
+  const now = serverTimestamp();
+  const clientRef = doc(collection(db, collections.clients));
+
+  const client = {
+    ...rest,
+    portalLoginEmail: portalLoginEmail || rest.email || '',
+    monthlyMaintenanceAmount: Number(monthlyMaintenanceAmount) || 95,
+    buildPrice: Number(buildPrice) || 0,
+    subscriptionEnabled: Boolean(subscriptionEnabled),
+    authUid: '',
+    archived: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const batch = writeBatch(db);
+  batch.set(clientRef, client);
+  batch.set(doc(db, collections.payments, clientRef.id), {
+    clientId: clientRef.id,
+    paymentStatus: client.paymentStatus || 'Not started',
+    monthlyMaintenanceAmount: client.monthlyMaintenanceAmount,
+    subscriptionEnabled: client.subscriptionEnabled,
+    stripeCustomerId: client.stripeCustomerId || '',
+    stripeSubscriptionId: client.stripeSubscriptionId || '',
+    billingPortalUrl: client.billingPortalUrl || '',
+    updatedAt: now,
+  });
+  batch.set(doc(collection(db, collections.notifications)), {
+    title: 'Client created',
+    message: client.businessName || '',
+    clientId: clientRef.id,
+    read: false,
+    createdAt: now,
+  });
+  await batch.commit();
+
+  return { data: { clientId: clientRef.id, temporaryPassword: null } };
 }
 
 // ─── Leads ────────────────────────────────────────────────────

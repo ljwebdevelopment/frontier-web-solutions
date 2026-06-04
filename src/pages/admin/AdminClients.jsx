@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import {
   archiveClient,
-  createClientWithUser,
+  createClientDirect,
   deleteClient,
   listenToClients,
   updateClient,
@@ -79,21 +79,23 @@ export default function AdminClients() {
 
   async function handleCreate(e) {
     e.preventDefault();
-    setStatus('Creating client...');
+    if (!form.businessName.trim() || !form.contactName.trim() || !form.email.trim()) {
+      setStatus('Business name, contact name, and email are required.');
+      return;
+    }
+    setStatus('Saving client…');
     try {
-      const result = await createClientWithUser({
+      const result = await createClientDirect({
         ...form,
-        monthlyMaintenanceAmount: Number(form.monthlyMaintenanceAmount),
-        buildPrice: Number(form.buildPrice),
         portalLoginEmail: form.portalLoginEmail || form.email,
         temporaryPassword: tempPassword || undefined,
       });
       setForm(blankClient);
       setTempPassword('');
-      setStatus(`Client created. Temp password: ${result.data.temporaryPassword}`);
+      setStatus(`Client saved. Open the client record to set up portal login.`);
       setTab('active');
     } catch (err) {
-      setStatus(err.message);
+      setStatus(`Error: ${err.message}`);
     }
   }
 
