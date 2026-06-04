@@ -338,6 +338,11 @@ ul { margin: 0; padding: 0; list-style: none; }
   50% { opacity: 0.6; transform: scale(0.85); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .hero h1 {
   max-width: 860px;
   font-size: clamp(38px, 5.5vw, 68px);

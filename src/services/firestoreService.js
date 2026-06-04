@@ -229,6 +229,19 @@ export async function createNotification(title, message, sourceId, clientId = nu
   });
 }
 
+// ─── Stripe ───────────────────────────────────────────────────
+export async function createBillingPortalSession(returnUrl) {
+  requireFunctions();
+  const callable = httpsCallable(functions, 'createBillingPortalSession');
+  return callable({ returnUrl });
+}
+
+export async function createCheckoutSession() {
+  requireFunctions();
+  const callable = httpsCallable(functions, 'createCheckoutSession');
+  return callable({});
+}
+
 // ─── Documents / Resources ────────────────────────────────────
 export function listenToDocuments(clientId, callback) {
   return listenToCollection(collections.documents, callback, [
