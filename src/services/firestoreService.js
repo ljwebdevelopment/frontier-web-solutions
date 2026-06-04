@@ -1,6 +1,8 @@
 import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../firebase/config';
+import { getApps, initializeApp } from 'firebase/app';
+import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth';
+import { db, functions, firebaseConfig } from '../firebase/config';
 
 export const collections = {
   users: 'users',
@@ -84,6 +86,113 @@ export async function updateClient(clientId, data) {
   }
 
   return upsertPayment(clientId, paymentPayload);
+}
+
+// Creates a Firebase Auth user via a secondary app instance (no Cloud Functions needed).
+// The secondary app signs in as the new user then immediately signs out,
+// leaving the admin session completely untouched.
+function getSecondaryAuth() {
+  const existing = getApps().find((a) => a.name === 'client-creator');
+  const app = existing || initializeApp(firebaseConfig, 'client-creator');
+  return getAuth(app);
+}
+
+function generatePassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+  return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+export async function createClientWithPortalLogin(payload) {
+  requireFirestore();
+
+  const {
+    portalLoginEmail,
+    temporaryPassword,
+    monthlyMaintenanceAmount,
+    buildPrice,
+    subscriptionEnabled,
+    ...rest
+  } = payload;
+
+  const email = (portalLoginEmail || rest.email || '').toLowerCase().trim();
+  if (!email) throw new Error('Portal login email is required.');
+  if (!rest.businessName?.trim()) throw new Error('Business name is required.');
+  if (!rest.contactName?.trim()) throw new Error('Contact name is required.');
+
+  const password = temporaryPassword?.trim() || generatePassword();
+
+  // Create the Firebase Auth user via secondary app — does NOT log out the admin
+  const secondaryAuth = getSecondaryAuth();
+  let userCredential;
+  try {
+    userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+  } catch (err) {
+    if (err.code === 'auth/email-already-in-use') {
+      throw new Error(`A portal login for ${email} already exists. Use a different email or reset their password.`);
+    }
+    throw new Error(`Could not create login: ${err.message}`);
+  } finally {
+    await signOut(secondaryAuth).catch(() => {});
+  }
+
+  const uid = userCredential.user.uid;
+  const now = serverTimestamp();
+  const clientRef = doc(collection(db, collections.clients));
+
+  const client = {
+    ...rest,
+    portalLoginEmail: email,
+    monthlyMaintenanceAmount: Number(monthlyMaintenanceAmount) || 95,
+    buildPrice: Number(buildPrice) || 0,
+    subscriptionEnabled: Boolean(subscriptionEnabled),
+    authUid: uid,
+    archived: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const batch = writeBatch(db);
+
+  batch.set(clientRef, client);
+
+  batch.set(doc(db, collections.users, uid), {
+    role: 'client',
+    clientId: clientRef.id,
+    email,
+    businessName: client.businessName,
+    contactName: client.contactName,
+    createdAt: now,
+  });
+
+  batch.set(doc(db, collections.payments, clientRef.id), {
+    clientId: clientRef.id,
+    paymentStatus: client.paymentStatus || 'Not started',
+    monthlyMaintenanceAmount: client.monthlyMaintenanceAmount,
+    subscriptionEnabled: client.subscriptionEnabled,
+    stripeCustomerId: client.stripeCustomerId || '',
+    stripeSubscriptionId: client.stripeSubscriptionId || '',
+    billingPortalUrl: client.billingPortalUrl || '',
+    updatedAt: now,
+  });
+
+  batch.set(doc(collection(db, collections.notifications)), {
+    title: 'New client created',
+    message: client.businessName,
+    clientId: clientRef.id,
+    read: false,
+    createdAt: now,
+  });
+
+  try {
+    await batch.commit();
+  } catch (err) {
+    // Firestore write failed — clean up the auth user so we don't leave orphans
+    const { getAuth: getAdminAuth } = await import('firebase/auth');
+    // We can't delete the user client-side (requires admin SDK), but flag it clearly
+    throw new Error(`Client data failed to save: ${err.message}. Auth user created for ${email} — delete it manually in Firebase Console if needed.`);
+  }
+
+  return { clientId: clientRef.id, uid, temporaryPassword: password };
 }
 
 // Requires Firebase Cloud Functions (Blaze plan). Creates Firebase Auth user for portal login.
