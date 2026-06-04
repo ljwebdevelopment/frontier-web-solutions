@@ -207,9 +207,35 @@ export async function archiveClient(clientId) {
 }
 
 export async function deleteClient(clientId) {
-  requireFunctions();
-  const callable = httpsCallable(functions, 'deleteClientAccount');
-  return callable({ clientId });
+  requireFirestore();
+
+  const clientSnap = await getDoc(doc(db, collections.clients, clientId));
+  if (!clientSnap.exists()) throw new Error('Client not found.');
+
+  const client = clientSnap.data();
+  const now = serverTimestamp();
+  const batch = writeBatch(db);
+
+  batch.delete(doc(db, collections.clients, clientId));
+  batch.delete(doc(db, collections.payments, clientId));
+
+  if (client.authUid) {
+    batch.delete(doc(db, collections.users, client.authUid));
+  }
+
+  batch.set(doc(collection(db, collections.notifications)), {
+    title: 'Client deleted',
+    message: client.businessName || clientId,
+    clientId,
+    read: false,
+    createdAt: now,
+  });
+
+  await batch.commit();
+
+  // Auth user is blocked (no Firestore profile) but not hard-deleted.
+  // To fully remove it: Firebase Console → Authentication → find the email → delete.
+  return { clientId, deleted: true };
 }
 
 export async function createClientWithUser(payload) {
