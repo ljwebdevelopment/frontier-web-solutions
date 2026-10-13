@@ -1,4 +1,4 @@
-import { CheckCircle2, Mail } from 'lucide-react';
+import { CheckCircle2, Clock, Mail, MessageSquare, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CONTACT_EMAIL, FORMSPREE_FORM_ID } from '../config.js';
@@ -14,7 +14,7 @@ export default function Contact() {
     const form = e.currentTarget;
     const data = new FormData(form);
     const chosen = packages.find((p) => p.id === data.get('package'));
-    data.set('package', chosen ? `${chosen.name} (${chosen.level}, $${chosen.monthly}/mo)` : 'Not sure yet');
+    data.set('package', chosen ? `${chosen.name} ($${chosen.monthly}/mo)` : 'Not sure yet');
     data.set('add-ons', data.getAll('add-ons').join(', ') || 'None');
 
     if (!FORMSPREE_FORM_ID) {
@@ -40,15 +40,28 @@ export default function Contact() {
   return (
     <>
       <section className="page-head">
-        <div className="container">
-          <p className="eyebrow">Contact</p>
-          <h1>Get a free quote</h1>
-          <p>Tell us about your business and what you need. We'll get back to you within one business day.</p>
+        <div className="hero__glow" aria-hidden="true" />
+        <div className="container page-head__inner">
+          <p className="eyebrow">Free Quote</p>
+          <h1>Let's build something <span className="gradient-text">great.</span></h1>
+          <p>Tell us about your business and what you need. It takes two minutes, and there's no obligation.</p>
         </div>
       </section>
 
-      <section className="section section--tight">
-        <div className="container container--narrow">
+      <section className="section section--overlap">
+        <div className="container contact">
+          <aside className="contact__side">
+            <h2>What happens next</h2>
+            <ol>
+              <li><MessageSquare size={20} /><div><strong>We read your message</strong><span>And get back to you within one business day.</span></div></li>
+              <li><Clock size={20} /><div><strong>Quick call or email</strong><span>We learn about your business and recommend the right package.</span></div></li>
+              <li><Rocket size={20} /><div><strong>We get to work</strong><span>Most sites launch in 2–4 weeks.</span></div></li>
+            </ol>
+            <p className="contact__email">
+              <Mail size={16} /> <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+            </p>
+          </aside>
+          <div className="contact__main">
           {status === 'sent' ? (
             <div className="notice notice--success">
               <CheckCircle2 size={28} />
@@ -84,7 +97,7 @@ export default function Contact() {
                 <select name="package" defaultValue={initialPackage}>
                   <option value="">Not sure yet</option>
                   {packages.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name} ({p.level}): ${p.monthly}/mo</option>
+                    <option key={p.id} value={p.id}>{p.name}: ${p.monthly}/mo</option>
                   ))}
                 </select>
               </label>
@@ -112,14 +125,11 @@ export default function Contact() {
               )}
 
               <button type="submit" className="button button--primary button--lg" disabled={status === 'sending'}>
-                {status === 'sending' ? 'Sending…' : 'Send Message'}
+                {status === 'sending' ? 'Sending…' : 'Get My Free Quote'}
               </button>
             </form>
           )}
-
-          <p className="contact-alt">
-            <Mail size={16} /> Prefer email? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-          </p>
+          </div>
         </div>
       </section>
     </>

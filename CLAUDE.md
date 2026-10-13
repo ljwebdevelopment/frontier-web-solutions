@@ -17,8 +17,10 @@ There is no test suite or lint config.
 Static marketing site (React 19 + Vite + react-router-dom + lucide-react). No backend.
 
 - `src/main.jsx` — routes: `/`, `/packages` (`/pricing` redirects there), `/contact`, 404
-- `src/components/Layout.jsx` — header, mobile nav, footer
-- `src/data/pricing.js` — single source of truth for the build fee, the three packages (Outpost / Homestead / Frontier), and add-ons
+- `src/components/Layout.jsx` — fixed dark header (glass on scroll), mobile nav, footer
+- `src/components/Reveal.jsx` — scroll-in animation wrapper (IntersectionObserver; disabled under prefers-reduced-motion)
+- `src/components/BrowserMock.jsx` — decorative CSS-only site mockup in the home hero
+- `src/data/pricing.js` — single source of truth for the build fee, the three packages (Basic / Standard / Premium), the comparison table, and add-ons
 - `src/config.js` — Formspree form ID and contact email
 - `src/pages/Contact.jsx` — quote form, POSTs to Formspree; `?package=<id>` preselects a package
 - `src/styles.css` — all styles, CSS custom properties on `:root`, BEM-style class names (`.package__price`, `.header__nav`)
