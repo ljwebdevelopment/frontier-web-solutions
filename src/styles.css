@@ -136,7 +136,7 @@ button, input, select, textarea { font: inherit; }
   transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
 }
 .header.is-scrolled {
-  background: rgba(11, 9, 9, 0.82);
+  background: rgba(11, 9, 9, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom-color: var(--night-line);
