@@ -17,6 +17,12 @@ npm run dev
 - **Contact email & Formspree form ID:** `src/config.js`
 - **Styles:** `src/styles.css`
 
+## SEO
+
+Every page is prerendered to static HTML at build time with its own title, description,
+canonical URL, Open Graph/Twitter tags, and schema.org structured data. Edit page titles and
+descriptions in `src/seo.js`. `sitemap.xml` is generated on every build; `robots.txt` is in `public/`.
+
 ## Contact form (Formspree)
 
 The quote form uses `@formspree/react` and submits to form `xppqozoq`

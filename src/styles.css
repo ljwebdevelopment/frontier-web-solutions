@@ -744,3 +744,17 @@ button, input, select, textarea { font: inherit; }
   .reveal { opacity: 1; transform: none; }
   html { scroll-behavior: auto; }
 }
+
+/* ─── Skip link ──────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 700;
+}
+.skip-link:focus { top: 12px; }

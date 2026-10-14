@@ -1,5 +1,6 @@
 import { useForm, ValidationError } from '@formspree/react';
 import { CheckCircle2, Clock, Mail, MessageSquare, Rocket } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CONTACT_EMAIL, FORMSPREE_FORM_ID } from '../config.js';
 import { addOns, packages } from '../data/pricing.js';
@@ -8,6 +9,12 @@ export default function Contact() {
   const [params] = useSearchParams();
   const initialPackage = packages.some((p) => p.id === params.get('package')) ? params.get('package') : '';
   const [state, submitToFormspree] = useForm(FORMSPREE_FORM_ID);
+  const packageSelect = useRef(null);
+
+  // The page is prerendered without a query string, so apply ?package= after hydration.
+  useEffect(() => {
+    if (packageSelect.current && initialPackage) packageSelect.current.value = initialPackage;
+  }, [initialPackage]);
 
   // Turn the package id and add-on checkboxes into readable text for the email.
   function handleSubmit(e) {
@@ -81,7 +88,7 @@ export default function Contact() {
               </div>
               <label className="field">
                 <span>Package</span>
-                <select name="package" defaultValue={initialPackage}>
+                <select name="package" defaultValue="" ref={packageSelect}>
                   <option value="">Not sure yet</option>
                   {packages.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}: ${p.monthly}/mo</option>
