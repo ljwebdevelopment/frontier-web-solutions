@@ -1,5 +1,5 @@
+import { useForm, ValidationError } from '@formspree/react';
 import { CheckCircle2, Clock, Mail, MessageSquare, Rocket } from 'lucide-react';
-import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CONTACT_EMAIL, FORMSPREE_FORM_ID } from '../config.js';
 import { addOns, packages } from '../data/pricing.js';
@@ -7,35 +7,21 @@ import { addOns, packages } from '../data/pricing.js';
 export default function Contact() {
   const [params] = useSearchParams();
   const initialPackage = packages.some((p) => p.id === params.get('package')) ? params.get('package') : '';
-  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [state, submitToFormspree] = useForm(FORMSPREE_FORM_ID);
 
-  async function handleSubmit(e) {
+  // Turn the package id and add-on checkboxes into readable text for the email.
+  function handleSubmit(e) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
+    const data = new FormData(e.currentTarget);
     const chosen = packages.find((p) => p.id === data.get('package'));
-    data.set('package', chosen ? `${chosen.name} ($${chosen.monthly}/mo)` : 'Not sure yet');
+    const packageLabel = chosen ? `${chosen.name} ($${chosen.monthly}/mo)` : 'Not sure yet';
+    data.set('package', packageLabel);
     data.set('add-ons', data.getAll('add-ons').join(', ') || 'None');
-
-    if (!FORMSPREE_FORM_ID) {
-      setStatus('error');
-      return;
-    }
-
-    setStatus('sending');
-    try {
-      const res = await fetch(`https://formspree.io/f/${FORMSPREE_FORM_ID}`, {
-        method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' },
-      });
-      if (!res.ok) throw new Error(`Formspree responded ${res.status}`);
-      form.reset();
-      setStatus('sent');
-    } catch {
-      setStatus('error');
-    }
+    data.set('_subject', `New quote request from ${data.get('name')}: ${packageLabel}`);
+    return submitToFormspree(data);
   }
+
+  const formErrors = state.errors?.getFormErrors() ?? [];
 
   return (
     <>
@@ -62,7 +48,7 @@ export default function Contact() {
             </p>
           </aside>
           <div className="contact__main">
-          {status === 'sent' ? (
+          {state.succeeded ? (
             <div className="notice notice--success">
               <CheckCircle2 size={28} />
               <div>
@@ -86,6 +72,7 @@ export default function Contact() {
                 <label className="field">
                   <span>Email *</span>
                   <input type="email" name="email" required autoComplete="email" />
+                  <ValidationError field="email" errors={state.errors} className="field__error" />
                 </label>
                 <label className="field">
                   <span>Phone</span>
@@ -115,17 +102,18 @@ export default function Contact() {
               <label className="field">
                 <span>Tell us about your project *</span>
                 <textarea name="message" rows={5} required placeholder="What does your business do? Do you have a website now? Anything you'd like on the new one?" />
+                <ValidationError field="message" errors={state.errors} className="field__error" />
               </label>
 
-              {status === 'error' && (
+              {formErrors.length > 0 && (
                 <p className="form__error">
-                  Something went wrong sending your message. Please email us at{' '}
+                  {formErrors.map((err) => err.message).join(' ')} You can also email us at{' '}
                   <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
                 </p>
               )}
 
-              <button type="submit" className="button button--primary button--lg" disabled={status === 'sending'}>
-                {status === 'sending' ? 'Sending…' : 'Get My Free Quote'}
+              <button type="submit" className="button button--primary button--lg" disabled={state.submitting}>
+                {state.submitting ? 'Sending…' : 'Get My Free Quote'}
               </button>
             </form>
           )}
