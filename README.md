@@ -19,6 +19,6 @@ npm run dev
 
 ## Contact form (Formspree)
 
-1. Create a free account at [formspree.io](https://formspree.io) and create a new form.
-2. Copy the form ID (the part after `/f/` in the endpoint, e.g. `https://formspree.io/f/abcdwxyz` → `abcdwxyz`).
-3. Paste it into `FORMSPREE_FORM_ID` in `src/config.js` and push.
+The quote form uses `@formspree/react` and submits to form `xppqozoq`
+(set in `src/config.js`). Submissions are emailed to the address on the
+Formspree account. To use a different form, replace `FORMSPREE_FORM_ID`.

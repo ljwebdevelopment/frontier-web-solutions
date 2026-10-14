@@ -14,7 +14,7 @@ There is no test suite or lint config.
 
 ## Architecture
 
-Static marketing site (React 19 + Vite + react-router-dom + lucide-react). No backend.
+Static marketing site (React 19 + Vite + react-router-dom + lucide-react). No backend; the quote form submits to Formspree.
 
 - `src/main.jsx` — routes: `/`, `/packages` (`/pricing` redirects there), `/contact`, 404
 - `src/components/Layout.jsx` — fixed dark header (glass on scroll), mobile nav, footer
@@ -22,7 +22,7 @@ Static marketing site (React 19 + Vite + react-router-dom + lucide-react). No ba
 - `src/components/BrowserMock.jsx` — decorative CSS-only site mockup in the home hero
 - `src/data/pricing.js` — single source of truth for the build fee, the three packages (Basic / Standard / Premium), the comparison table, and add-ons
 - `src/config.js` — Formspree form ID and contact email
-- `src/pages/Contact.jsx` — quote form, POSTs to Formspree; `?package=<id>` preselects a package
+- `src/pages/Contact.jsx` — quote form via `@formspree/react` (`useForm` + `ValidationError`); rewrites package/add-on fields to readable text and sets `_subject` before submitting; `?package=<id>` preselects a package
 - `src/styles.css` — all styles, CSS custom properties on `:root`, BEM-style class names (`.package__price`, `.header__nav`)
 
 Logos live in `src/assets/`: the original 2000×2000 files plus cropped `-wide` versions used in the header/footer.

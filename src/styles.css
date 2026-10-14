@@ -647,6 +647,7 @@ button, input, select, textarea { font: inherit; }
 }
 .check:has(input:checked) { border-color: var(--red); background: var(--red-tint); }
 .check input { width: 18px; height: 18px; margin: 0; accent-color: var(--red); }
+.field__error { color: var(--red); font-size: 0.85rem; font-weight: 500; }
 .form__error { padding: 12px 14px; border-radius: 10px; background: var(--red-tint); color: var(--red-dark); font-size: 0.95rem; }
 .form__error a { font-weight: 700; text-decoration: underline; }
 .form .button { justify-self: start; }
