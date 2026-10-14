@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import logoWhite from '../assets/FWSlogo-white-wide.png';
 import { CONTACT_EMAIL } from '../config.js';
+import Seo from './Seo.jsx';
 
 export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -25,10 +26,12 @@ export default function Layout() {
 
   return (
     <div className="site">
+      <Seo />
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className={`header${scrolled ? ' is-scrolled' : ''}`}>
         <div className="header__inner">
           <Link to="/" className="header__brand">
-            <img src={logoWhite} alt="Frontier Web Systems" />
+            <img src={logoWhite} alt="Frontier Web Systems" width="640" height="316" />
           </Link>
           <button
             className={`header__toggle${menuOpen ? ' is-open' : ''}`}
@@ -48,14 +51,14 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className="main">
+      <main className="main" id="main">
         <Outlet />
       </main>
 
       <footer className="footer">
         <div className="footer__inner">
           <div className="footer__brand">
-            <img src={logoWhite} alt="Frontier Web Systems" />
+            <img src={logoWhite} alt="Frontier Web Systems" width="640" height="316" />
             <p>Custom websites, built and cared for, for small businesses that want to look like the best in town.</p>
           </div>
           <div className="footer__cols">
