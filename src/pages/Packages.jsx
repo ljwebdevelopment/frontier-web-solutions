@@ -26,8 +26,9 @@ export default function Packages() {
         </div>
       </section>
 
-      <section className="section section--overlap">
+      <section className="section section--overlap" aria-labelledby="plans-heading">
         <div className="container">
+          <h2 id="plans-heading" className="sr-only">Website plans</h2>
           <div className="grid grid--3">
             {packages.map((pkg, i) => (
               <Reveal key={pkg.id} delay={i * 100}><PackageCard pkg={pkg} /></Reveal>
@@ -92,7 +93,7 @@ export default function Packages() {
         </div>
       </section>
 
-      <section className="section section--soft">
+      <section className="section section--soft" id="faq">
         <div className="container container--narrow">
           <Reveal className="section__head">
             <p className="eyebrow">FAQ</p>

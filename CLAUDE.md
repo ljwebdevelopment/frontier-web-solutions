@@ -20,7 +20,8 @@ Static marketing site (React 19 + Vite + react-router-dom + lucide-react). No ba
 - `src/main.jsx` — client entry; hydrates prerendered HTML in production, renders fresh in dev
 - `src/entry-server.jsx` — SSR entry used only by the prerender step
 - `scripts/prerender.mjs` — renders each route into `dist/<route>.html` (GitHub Pages serves `/packages` from `packages.html`), injects per-page `<title>`/meta/canonical/Open Graph/JSON-LD at the `<!--seo-head-->` marker in `index.html`, writes `404.html`, redirect stubs, and `sitemap.xml`
-- `src/seo.js` — per-page titles/descriptions, sitemap entries, and schema.org structured data (ProfessionalService, WebSite, Service + OfferCatalog, FAQPage, BreadcrumbList). Add new routes here and in `prerender.mjs`
+- `src/seo.js` — per-page titles/descriptions/share images, sitemap entries, and schema.org structured data (ProfessionalService, WebSite, Service + OfferCatalog, one Service per main service, FAQPage, BreadcrumbList). Add new routes here and in `prerender.mjs`. TODO comments mark facts the owner still has to supply (service area, phone, social profiles)
+- `scripts/og-images.mjs` — regenerates `public/og-packages.png` and `public/og-contact.png` (1200×630) with Playwright; rerun after price changes
 - `src/components/Seo.jsx` — updates title/meta/canonical on client-side navigation
 - `src/components/Layout.jsx` — fixed dark header (glass on scroll), mobile nav, footer
 - `src/components/Reveal.jsx` — scroll-in animation wrapper (IntersectionObserver; disabled under prefers-reduced-motion)
@@ -32,7 +33,9 @@ Static marketing site (React 19 + Vite + react-router-dom + lucide-react). No ba
 
 Components must render the same on server and client (no `window` access during render; read the query string in effects — see `Contact.jsx`).
 
-Social/OG image, icons, `logo.png`, `robots.txt` and `site.webmanifest` live in `public/`. Logos live in `src/assets/`: the original 2000×2000 files plus cropped `-wide` versions used in the header/footer.
+Social/OG images, favicon set (`favicon.ico`, 16/32 PNGs, apple-touch-icon, 192/512 + maskable icons), `logo.png`, `robots.txt` and `site.webmanifest` live in `public/`. Logos live in `src/assets/`: the original 2000×2000 files plus cropped `-wide` versions; the header/footer use `FWSlogo-white-wide.webp`.
+
+Fonts (Inter, Space Grotesk) are self-hosted via `@fontsource-variable/*`, imported in `main.jsx`; `prerender.mjs` preloads their Latin subsets. Don't add Google Fonts links back.
 
 ## Deployment
 

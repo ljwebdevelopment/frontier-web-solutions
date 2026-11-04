@@ -1,3 +1,6 @@
+# Frontier Web Systems: every page is public. Search engines and link-preview
+# bots (Googlebot, Bingbot, facebookexternalhit, Twitterbot, LinkedInBot,
+# Slackbot, Applebot for iMessage, etc.) are all allowed.
 User-agent: *
 Allow: /
 
