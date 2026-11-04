@@ -22,8 +22,9 @@
   --shadow-red: 0 18px 50px rgba(143, 18, 18, 0.28);
   --container: 1180px;
   --header-h: 76px;
-  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -343,7 +344,7 @@ button, input, select, textarea { font: inherit; }
 .page-head .eyebrow { color: var(--red-bright); }
 .page-head .hero__glow { inset: -60% auto auto 50%; translate: -50% 0; }
 .page-head--full { padding-bottom: 140px; }
-.page-head--full .button { margin-top: 32px; }
+.page-head--full .hero__actions { margin-top: 32px; justify-content: center; }
 
 .grid { display: grid; gap: 24px; }
 .grid--3 { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
@@ -468,7 +469,7 @@ button, input, select, textarea { font: inherit; }
   line-height: 1;
 }
 .package__currency { margin-top: 6px; margin-right: 2px; font-size: 1.6rem; }
-.package__per { align-self: flex-end; margin: 0 0 8px 4px; color: var(--muted); font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 500; letter-spacing: 0; }
+.package__per { align-self: flex-end; margin: 0 0 8px 4px; color: var(--muted); font-family: var(--font-body); font-size: 1rem; font-weight: 500; letter-spacing: 0; }
 .package__build { margin-top: 10px; color: var(--red); font-size: 0.9rem; font-weight: 700; }
 .package__tagline { margin-top: 18px; color: var(--muted); font-size: 0.95rem; }
 .package__features { flex: 1; margin: 26px 0 30px; padding: 24px 0 0; border-top: 1px solid var(--line); list-style: none; }
@@ -516,7 +517,7 @@ button, input, select, textarea { font: inherit; }
 .addon__body { flex: 1; min-width: 0; }
 .addon__body p { margin-top: 2px; color: var(--muted); font-size: 0.9rem; }
 .addon__price { text-align: right; color: var(--ink); font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; white-space: nowrap; }
-.addon__price span { display: block; color: var(--muted); font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; }
+.addon__price span { display: block; color: var(--muted); font-family: var(--font-body); font-size: 0.75rem; font-weight: 500; }
 
 /* ─── Steps ──────────────────────────────────────────────── */
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 0; padding: 0; list-style: none; }
@@ -671,7 +672,7 @@ button, input, select, textarea { font: inherit; }
 .footer__brand p { margin-top: 18px; max-width: 340px; font-size: 0.95rem; }
 .footer__cols { display: flex; gap: 72px; flex-wrap: wrap; }
 .footer__col { display: grid; gap: 10px; align-content: start; }
-.footer__col h4 { margin-bottom: 6px; color: var(--white); font-family: 'Inter', sans-serif; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.footer__heading { margin: 0 0 6px; font-weight: 700; color: var(--white); font-family: var(--font-body); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .footer__col a { font-size: 0.95rem; transition: color 0.2s; }
 .footer__col a:hover { color: var(--white); }
 .footer__bottom {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import logoWhite from '../assets/FWSlogo-white-wide.png';
+import logoWhite from '../assets/FWSlogo-white-wide.webp';
 import { CONTACT_EMAIL } from '../config.js';
 import Seo from './Seo.jsx';
 
@@ -30,8 +30,8 @@ export default function Layout() {
       <a href="#main" className="skip-link">Skip to content</a>
       <header className={`header${scrolled ? ' is-scrolled' : ''}`}>
         <div className="header__inner">
-          <Link to="/" className="header__brand">
-            <img src={logoWhite} alt="Frontier Web Systems" width="640" height="316" />
+          <Link to="/" className="header__brand" aria-label="Frontier Web Systems home">
+            <img src={logoWhite} alt="Frontier Web Systems logo" width="320" height="158" />
           </Link>
           <button
             className={`header__toggle${menuOpen ? ' is-open' : ''}`}
@@ -58,19 +58,20 @@ export default function Layout() {
       <footer className="footer">
         <div className="footer__inner">
           <div className="footer__brand">
-            <img src={logoWhite} alt="Frontier Web Systems" width="640" height="316" />
+            <img src={logoWhite} alt="Frontier Web Systems logo" width="320" height="158" loading="lazy" decoding="async" />
             <p>Custom websites, built and cared for, for small businesses that want to look like the best in town.</p>
           </div>
           <div className="footer__cols">
             <div className="footer__col">
-              <h4>Explore</h4>
+              <p className="footer__heading">Explore</p>
               <Link to="/">Home</Link>
-              <Link to="/packages">Packages</Link>
-              <Link to="/packages#add-ons">Add-ons</Link>
+              <Link to="/packages">Website packages &amp; pricing</Link>
+              <Link to="/packages#add-ons">Website add-ons</Link>
+              <Link to="/packages#faq">FAQ</Link>
             </div>
             <div className="footer__col">
-              <h4>Get started</h4>
-              <Link to="/contact">Free quote</Link>
+              <p className="footer__heading">Get started</p>
+              <Link to="/contact">Get a free website quote</Link>
               <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
             </div>
           </div>

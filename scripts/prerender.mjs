@@ -2,7 +2,7 @@
 // social previews get full content and correct meta tags without running JS.
 // Output: dist/index.html, dist/packages.html, dist/contact.html (GitHub Pages
 // serves /packages from packages.html), dist/404.html, redirect stubs, sitemap.xml.
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -13,6 +13,11 @@ const { render, seoFor, pageUrl, structuredData, sitemap, SITE } = await import(
 const template = readFileSync(resolve(dist, 'index.html'), 'utf8');
 
 const escape = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// Preload the Latin subsets of the self-hosted fonts so text renders in the right face sooner.
+const fontPreloads = readdirSync(resolve(dist, 'assets'))
+  .filter((f) => /^(inter|space-grotesk)-latin-wght-normal-.*\.woff2$/.test(f))
+  .map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`);
 
 function headTags(path) {
   const page = seoFor(path);
@@ -25,20 +30,24 @@ function headTags(path) {
     `<meta name="description" content="${escape(page.description)}" />`,
     `<meta name="robots" content="${robots}" />`,
     `<link rel="canonical" href="${url}" />`,
+    ...fontPreloads,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="${SITE.name}" />`,
     `<meta property="og:locale" content="en_US" />`,
     `<meta property="og:title" content="${escape(page.title)}" />`,
     `<meta property="og:description" content="${escape(page.description)}" />`,
     `<meta property="og:url" content="${url}" />`,
-    `<meta property="og:image" content="${SITE.image}" />`,
+    `<meta property="og:image" content="${page.image.url}" />`,
+    `<meta property="og:image:secure_url" content="${page.image.url}" />`,
+    `<meta property="og:image:type" content="image/png" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
-    `<meta property="og:image:alt" content="${SITE.name}: custom websites for small businesses" />`,
+    `<meta property="og:image:alt" content="${escape(page.image.alt)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escape(page.title)}" />`,
     `<meta name="twitter:description" content="${escape(page.description)}" />`,
-    `<meta name="twitter:image" content="${SITE.image}" />`,
+    `<meta name="twitter:image" content="${page.image.url}" />`,
+    `<meta name="twitter:image:alt" content="${escape(page.image.alt)}" />`,
   ];
   if (!page.noindex) {
     const json = JSON.stringify(structuredData(path)).replace(/</g, '\\u003c');
